@@ -27,6 +27,8 @@ import com.arturober.springeventos.entidades.Evento;
 import com.arturober.springeventos.entidades.User;
 import com.arturober.springeventos.entidades.dto.EventoDto;
 import com.arturober.springeventos.entidades.dto.InsertEventoDto;
+import com.arturober.springeventos.entidades.dto.ResponseEventoDto;
+import com.arturober.springeventos.entidades.dto.ResponseEventosDto;
 import com.arturober.springeventos.servicios.EventosService;
 
 @RestController
@@ -36,29 +38,26 @@ public class EventosController {
 	private EventosService eventosService;
 	
 	@GetMapping() 
-    public Map<String,Object> getEventos() {
-		Map<String, Object> resp = new HashMap<>();
-		resp.put("eventos", eventosService.findAll().stream().map(e -> EventoDto.fromEntity(e)).collect(Collectors.toList()));
-        return resp;
+    public ResponseEventosDto getEventos() {
+		List<EventoDto> eventos = eventosService.findAll().stream().map(e -> EventoDto.fromEntity(e)).collect(Collectors.toList());
+        return new ResponseEventosDto(eventos);
     }
 	
 	@GetMapping("{id}")
-    public ResponseEntity<Map<String, Object>> getEvento(@PathVariable Long id) {
+    public ResponseEntity<ResponseEventoDto> getEvento(@PathVariable Long id) {
 		try {
 			EventoDto evento = EventoDto.fromEntity(eventosService.find(id));
-			Map<String, Object> resp = new HashMap<>();
-			resp.put("evento", evento);
-			return ResponseEntity.ok().body(resp);
+			return ResponseEntity.ok().body(new ResponseEventoDto(evento));
 		} catch(NotFoundException e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
     }
 	
 	@PostMapping()
-	public ResponseEntity<EventoDto> postEvento(Authentication authentication, @RequestBody InsertEventoDto eventoDto) {
+	public ResponseEntity<ResponseEventoDto> postEvento(Authentication authentication, @RequestBody InsertEventoDto eventoDto) {
 		Long idCreator = ((Integer)authentication.getCredentials()).longValue();
-		Evento e = eventosService.insert(eventoDto, idCreator);
-		return ResponseEntity.status(HttpStatus.CREATED).body(EventoDto.fromEntity(e));
+		EventoDto evento = EventoDto.fromEntity(eventosService.insert(eventoDto, idCreator));
+		return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseEventoDto(evento));
 	}
 	
 	@DeleteMapping("{id}")

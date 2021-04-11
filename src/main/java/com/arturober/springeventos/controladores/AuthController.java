@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.arturober.springeventos.entidades.User;
+import com.arturober.springeventos.entidades.dto.ResponseLoginDto;
 import com.arturober.springeventos.entidades.dto.UserLoginDto;
 import com.arturober.springeventos.entidades.dto.UserRegisterDto;
 import com.arturober.springeventos.security.SecurityConstants;
@@ -32,14 +33,11 @@ public class AuthController {
 	private UsersService usersService;
 	
 	@PostMapping("/login")
-	public ResponseEntity<Map<String, Object>> login(@RequestBody UserLoginDto userLogin) throws NoSuchAlgorithmException {
-		Map<String, Object> resp = new HashMap<>();
-		
+	public ResponseEntity<ResponseLoginDto> login(@RequestBody UserLoginDto userLogin) throws NoSuchAlgorithmException {	
 		User user = usersService.login(userLogin.getEmail(), userLogin.getPassword());
 		
 		if(user != null) {
-			resp.put("accessToken", getToken(user));
-			return ResponseEntity.ok().body(resp);
+			return ResponseEntity.ok().body(new ResponseLoginDto(getToken(user)));
 		} else {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
